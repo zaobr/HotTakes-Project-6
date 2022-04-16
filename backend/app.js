@@ -1,6 +1,10 @@
 const express = require('express');
 const mongoose = require('mongoose');
+const path = require('path');
 const app = express();
+const userRoutes = require('./routes/user');
+const saucesRoutes = require('./routes/sauces');
+
 
 mongoose.connect('mongodb+srv://zaobr:M.1995@cluster0.xeacm.mongodb.net/myFirstDatabase?retryWrites=true&w=majority',
     { useNewUrlParser: true,
@@ -9,6 +13,7 @@ mongoose.connect('mongodb+srv://zaobr:M.1995@cluster0.xeacm.mongodb.net/myFirstD
 .catch(() => console.log('Connexion à MongoDB échouée !'));
 
 app.use(express.json());
+app.use('/images', express.static(path.join(__dirname, 'images')));
 
 
 app.use((req, res, next) => {
@@ -19,5 +24,7 @@ app.use((req, res, next) => {
 });
 
 
+app.use('api/auth', userRoutes);
+app.use('api/sauces', saucesRoutes);
 
 module.exports = app;
