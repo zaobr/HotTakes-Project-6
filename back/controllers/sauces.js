@@ -56,16 +56,28 @@ exports.deleteSauce = (req, res, next) => {
 exports.likeSauce = (req, res, next) => {
     const userId = req.body.userId;
     const like = req.body.like;
-    Sauce.updateOne({_id: req.params.id},{...req.body, _id: req.params.id})
+    Sauce.findOne({_id: req.params.id})
         .then(sauce => {
-            if(like == 1){
-                sauce.likes++;
-                sauce.usersLiked.push(userId);
-                res.status(200).json({message: "Tout se passe bien"})
-                // if(sauce.usersLiked.find(user => user == userId) == userId){
-                //     console.log("il est dans le tableau"); 
-                // }         
+            if(like == 1 && sauce.usersLiked.find(user => user == userId) != userId){
+                Sauce.updateOne({_id: req.params.id}, {$inc: {likes: +1}, $push: {usersLiked: userId}, $pull: {usersDisliked: userId}})
+                    .then(() => res.status(201).json({message: "Sauce likée!"}))
+                    .catch(error => res.status(400).json({error}))
+            }
+            if(like == -1 && sauce.usersDisliked.find(user => user == userId) != userId){
+                Sauce.updateOne({_id: req.params.id}, {$inc: {dislikes: +1}, $push: {usersDisliked: userId}, $pull: {usersLiked: userId}})
+                    .then(() => res.status(201).json({message: "Sauce dislikée!"}))
+                    .catch(error => res.status(400).json({error}))
+            }
+            if(like == 0 && sauce.usersDisliked.find(user => user == userId) == userId){
+                Sauce.updateOne({_id: req.params.id}, {$inc: {dislikes: -1}, $pull: {usersDisliked: userId}})
+                    .then(() => res.status(201).json({message: "Retrait du dislike!"}))
+                    .catch(error => res.status(400).json({error}))
+            }
+            if(like == 0 && sauce.usersLiked.find(user => user == userId) == userId){
+                Sauce.updateOne({_id: req.params.id}, {$inc: {likes: -1}, $pull: {usersLiked: userId}})
+                    .then(() => res.status(201).json({message: "Retrait du like!"}))
+                    .catch(error => res.status(400).json({error}))
             }
         })
-        .catch(error => res.status(500).json({error}))
+        .catch(error => res.status(404).json({error}))
 }
