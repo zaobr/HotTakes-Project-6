@@ -54,5 +54,18 @@ exports.deleteSauce = (req, res, next) => {
 };
 
 exports.likeSauce = (req, res, next) => {
-    
+    const userId = req.body.userId;
+    const like = req.body.like;
+    Sauce.updateOne({_id: req.params.id},{...req.body, _id: req.params.id})
+        .then(sauce => {
+            if(like == 1){
+                sauce.likes++;
+                sauce.usersLiked.push(userId);
+                res.status(200).json({message: "Tout se passe bien"})
+                // if(sauce.usersLiked.find(user => user == userId) == userId){
+                //     console.log("il est dans le tableau"); 
+                // }         
+            }
+        })
+        .catch(error => res.status(500).json({error}))
 }
